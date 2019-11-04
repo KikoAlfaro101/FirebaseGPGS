@@ -133,7 +133,7 @@ First of all, it is important have to check that Firebase is going to work well 
         });
 ```
 
-#### Signing Up
+#### Signing in
 In this case, the Sign In method is called once the user has been logged in with the GPGS, as the *authCode* variable is needed to vinculate it with the Firebase project.
 
 ```csharp
