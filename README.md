@@ -1,7 +1,9 @@
 # GPGS Sign in with Firebase
 This demo covers the basic steps in order to integrate the Google Play Games Services offered by Google with Firebase on a Unity project. Whereas it is not posted the configuration of a Firebase Project on detail, there are mentioned the main steps to do so, in order to check it all.
 
-All the steps covered are based on the [official documentation guide](https://firebase.google.com/docs/auth/unity/play-games#set_up_your_firebase_project). Please, check it out while reading this.
+**All the script snippets showed below have been extracted of the official documentation of Google, which is the owner of all the rights associated to them.**
+
+Moreover, the steps covered are based on the [official documentation guide](https://firebase.google.com/docs/auth/unity/play-games#set_up_your_firebase_project). Please, check it out while reading this.
 
 ## 1.  Unity Project
 Configuration of the Player.
@@ -49,8 +51,7 @@ Important links for more information:
 
 ## 4. Putting all together
 
-Once the cloud services are configurated, let's call the API services from the Unity project. All the script snippets showed below have been extracted of the official documentation of Google, which is the owner of all the rights associated to them.
-
+Once the cloud services are configurated, let's call the API services from the Unity project.
 
 
 ### GPGS management
