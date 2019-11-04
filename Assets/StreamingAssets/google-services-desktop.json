@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "5759219361",
+    "firebase_url": "https://signuptest-kikoalfaro.firebaseio.com",
+    "project_id": "signuptest-kikoalfaro",
+    "storage_bucket": "signuptest-kikoalfaro.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:5759219361:android:1e4685015548084b17a2e0",
+        "android_client_info": {
+          "package_name": "com.KikoAlfaro.FirebaseTest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "5759219361-copusb3acp9lpgu4jhh41m9tvs4pionc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANn-Z2z1ugMqmexEANEyjMITeJayZf7kc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "5759219361-copusb3acp9lpgu4jhh41m9tvs4pionc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
