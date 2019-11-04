@@ -1,6 +1,8 @@
 # GPGS Sign in with Firebase
 This demo covers the basic steps in order to integrate the Google Play Games Services offered by Google with Firebase on a Unity project. Whereas it is not posted the configuration of a Firebase Project on detail, there are mentioned the main steps to do so, in order to check it all.
 
+All the steps covered are based on the [official documentation guide](https://firebase.google.com/docs/auth/unity/play-games#set_up_your_firebase_project). Please, check it out while reading this.
+
 ## 1.  Unity Project
 Configuration of the Player.
 
@@ -19,11 +21,13 @@ The keystore file:
 
 ### Creating the project and importing the packages
 
-It is time to create the Firebase project on the [Firebase console](https://console.firebase.google.com/). See details of the process on the [official documentation](https://firebase.google.com/docs/unity/setup).
+It is time to create the Firebase project on the [Firebase console](https://console.firebase.google.com/). See details of [how to create a Firebase Project](https://firebase.google.com/docs/unity/setup).
 
 Important steps:
 - Download **the last version** of the [Firebase SDK packages](https://firebase.google.com/download/unity).
 - When creating the project, download the JSON configuration file of the project. The JSON file must be on the Assets root folder.
+
+Once the project is created, it must be configurated on the Settings tab and **the Play Games provider must be enabled**. Check the complete steps on the [official guide](https://firebase.google.com/docs/auth/unity/play-games#set_up_your_firebase_project).
 
 
 ## 3. Google Play Games Services
@@ -33,7 +37,7 @@ Important steps:
 
 #### Configure your app on the Google Play Console (REVIEW)
 Games Services:
-- It must be vinculated 2 applications: The Android one (com.yourcompany.unity-project-name) and The Firebase one (https://firebaseproject-yourcompany.firebaseapp.com/).
+- It must be vinculated 2 applications: The Android one (com.yourcompany.unity-project-name) and the Firebase one (https://firebaseproject-yourcompany.firebaseapp.com/).
 
 - To local tests, the public certificate must be used. On the Google Play Console, go to *All applications > YOUR_APP > Release management > Apps signing* and check that the SHA-1 of the Upload key certificate (the last one) is the same of the SHA-1 found on the Google API Console: *Credentials > Client IDs of OAuth 2.0 > Android client for...*
 
@@ -45,11 +49,65 @@ Important links for more information:
 
 ## 4. Putting all together
 
-Once the cloud services are configurated, let's call the API services from the Unity project. All the script snippets showed below have been extracted of the official documentation of Google, which is the owner of all the rights associated to them. 
+Once the cloud services are configurated, let's call the API services from the Unity project. All the script snippets showed below have been extracted of the official documentation of Google, which is the owner of all the rights associated to them.
 
-#### Firebase services management
 
-##### Checking dependences
+
+### GPGS management
+
+#### Initialization
+
+```csharp
+    private void InitGPGS()
+    {
+        PlayGamesClientConfiguration config = new PlayGamesClientConfiguration.Builder()
+    .RequestServerAuthCode(false /* Don't force refresh */)
+    .Build();
+
+        PlayGamesPlatform.DebugLogEnabled = true; // Enable debugging output
+        PlayGamesPlatform.InitializeInstance(config);
+        PlayGamesPlatform.Activate();
+        
+        GoogleSignin(); // Optional after initializate services
+    }
+```
+
+
+#### Signing in
+
+```csharp
+    private void GoogleSignin()
+    {
+        if (!Social.localUser.authenticated)
+        {
+            Social.localUser.Authenticate(success => {
+                if (success)
+                {
+                    Debug.Log("success");
+                }
+                else
+                {
+                    Debug.Log("fail...");
+                }
+            });
+        }
+    }
+```
+
+#### Vinculating GPGS id token with Firebase
+Here the authentication token of GPGS is used as a identification parameter to Sign In on Firebase.
+After this step, the user will be authenticated on Firebase and its identifier will be showed on the *Authentication > Users* tab of the Firebase project's console.
+
+```csharp
+        authCode = PlayGamesPlatform.Instance.GetServerAuthCode();
+        firebaseManager.SignIn(authCode); // Call to the Firebase script
+```
+
+
+
+### Firebase services management
+
+#### Checking dependences
 First of all, it is important have to check that Firebase is going to work well in the Unity project.
 
 ```csharp
@@ -74,7 +132,7 @@ First of all, it is important have to check that Firebase is going to work well 
         });
 ```
 
-##### Signing Up
+#### Signing Up
 In this case, the Sign In method is called once the user has been logged in with the GPGS, as the *authCode* variable is needed to vinculate it with the Firebase project.
 
 ```csharp
@@ -101,6 +159,20 @@ In this case, the Sign In method is called once the user has been logged in with
         });
     }
 ```
+
+#### Signing Out
+
+```csharp
+    public void SignOut()
+    {
+        Firebase.Auth.FirebaseAuth auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
+        Firebase.Auth.FirebaseUser user = auth.CurrentUser;
+
+        auth.SignOut();
+        user.DeleteAsync();
+    }
+```
+
 
 
 
