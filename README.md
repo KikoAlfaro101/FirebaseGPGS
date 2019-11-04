@@ -39,7 +39,7 @@ Once the project is created, it must be configurated on the Settings tab and **t
 
 #### Configure your app on the Google Play Console (REVIEW)
 Games Services:
-- It must be vinculated 2 applications: The Android one (com.yourcompany.unity-project-name) and the Firebase one (https://firebaseproject-yourcompany.firebaseapp.com/).
+- It must be linked 2 applications: The Android one (com.yourcompany.unity-project-name) and the Firebase one (https://firebaseproject-yourcompany.firebaseapp.com/).
 
 - To local tests, the public certificate must be used. On the Google Play Console, go to *All applications > YOUR_APP > Release management > Apps signing* and check that the SHA-1 of the Upload key certificate (the last one) is the same of the SHA-1 found on the Google API Console: *Credentials > Client IDs of OAuth 2.0 > Android client for...*
 
@@ -95,7 +95,7 @@ Once the cloud services are configurated, let's call the API services from the U
     }
 ```
 
-#### Vinculating GPGS id token with Firebase
+#### Linking GPGS id token with Firebase
 Here the authentication token of GPGS is used as a identification parameter to Sign In on Firebase.
 After this step, the user will be authenticated on Firebase and its identifier will be showed on the *Authentication > Users* tab of the Firebase project's console.
 
@@ -134,7 +134,7 @@ First of all, it is important have to check that Firebase is going to work well 
 ```
 
 #### Signing in
-In this case, the Sign In method is called once the user has been logged in with the GPGS, as the *authCode* variable is needed to vinculate it with the Firebase project.
+In this case, the Sign In method is called once the user has been logged in with the GPGS, as the *authCode* variable is needed to link it with the Firebase project.
 
 ```csharp
     public void SignIn(string authCode)
