@@ -19,7 +19,7 @@ The keystore file:
 
 ### Creating the project and importing the packages
 
-To create the Firebase project on the [Firebase console](https://console.firebase.google.com/), [follow the steps showed on the official documentation.] (https://firebase.google.com/docs/unity/setup)
+It is time to create the Firebase project on the [Firebase console](https://console.firebase.google.com/). See details of the process on the [official documentation](https://firebase.google.com/docs/unity/setup).
 
 Important steps:
 - Download **the last version** of the [Firebase SDK packages](https://firebase.google.com/download/unity).
