@@ -102,6 +102,17 @@ public class DatabaseManager : MonoBehaviour
                 return user; // DEBUG
     }
 
+    public void UpdateUserOnDB(User user)
+    {
+        Dictionary<string, object> currentUser = user.ToDictionary(); // Current data
+        Dictionary<string, object> childUpdates = new Dictionary<string, object>(); // Data to push
+
+        childUpdates[user.username] = currentUser;
+
+        FirebaseDatabase.DefaultInstance
+        .GetReference("Users").UpdateChildrenAsync(childUpdates);
+    }
+
     #endregion
 
     public void SetCurrentUser(User user)
@@ -145,6 +156,7 @@ public class DatabaseManager : MonoBehaviour
             unlocked = true;
         }
 
+        UpdateUserOnDB(currentUser);
         return unlocked;
     }
 

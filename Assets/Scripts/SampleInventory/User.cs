@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class User
 {
@@ -73,5 +74,14 @@ public class User
     public static User CreateFromJSON(string jsonString)
     {
         return JsonUtility.FromJson<User>(jsonString);
+    }
+
+    public Dictionary<string, object> ToDictionary()
+    {
+        Dictionary<string, object> result = new Dictionary<string, object>();
+        result["username"] = username;
+        result["items"] = items;
+
+        return result;
     }
 }
