@@ -53,17 +53,16 @@ public class DatabaseManager : MonoBehaviour
     /// <param name="username"></param>
     public void StoreUserOnDB(string username)
     {
+        User user = new User(username, itemsAmount); // Only place where a new User is created
         string json = JsonUtility.ToJson(user);
         DatabaseReference dbRootRef = FirebaseDatabase.DefaultInstance.RootReference;
 
-        Debug.Log(json);
         dbRootRef
             .Child("Users")
             .Child(user.username) // ---> Mail contains @ and it's not allowed
             .SetRawJsonValueAsync(json);
 
-        Debug.Log("WRITE NEW USER CALLED");
-
+        SetCurrentUser(user);
         // If user exists but it wants to update its data (e.g. "username"), it's possible to access by:
         // mDatabaseRef.Child("users").Child(userId).Child("username").SetValueAsync(name);
     }
@@ -76,25 +75,31 @@ public class DatabaseManager : MonoBehaviour
     public async Task<User> GetUserFromDB(string username)
     {
         DataSnapshot snapshot;
+        User user = null;
 
-        await FirebaseDatabase.DefaultInstance
-.GetReference("Users").Child(username)
-.GetValueAsync().ContinueWith(task =>
-{
-    if (task.IsFaulted)
-    {
-        // Handle the error...
-        Debug.LogError("ERROR GETTING THE USER");
-    }
-    else if (task.IsCompleted)
-    {
-        snapshot = task.Result;
-        Debug.Log("Snapshot: " + snapshot.Value);
-    }
-});
+         await FirebaseDatabase.DefaultInstance
+        .GetReference("Users").Child(username)
+        .GetValueAsync().ContinueWith(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Debug.LogError("ERROR GETTING THE USER");
+            }
+            else if (task.IsCompleted)
+            {
+                snapshot = task.Result;
+                // Key == username (Both if exists or not)
+                Debug.Log(string.Format("Snapshot: {0} - {1}",  snapshot.Key, snapshot.Value));
 
-        //User user = snapshot.GetType(User);
-        return new User();
+                if(snapshot.Value != null) // Exists on the database
+                {
+                    user = User.CreateFromJSON(snapshot.GetRawJsonValue());
+                }
+
+                Debug.Log("User from JSON: " + user);
+            }
+        });
+                return user; // DEBUG
     }
 
     #endregion
@@ -102,6 +107,7 @@ public class DatabaseManager : MonoBehaviour
     public void SetCurrentUser(User user)
     {
         currentUser = user;
+        Debug.Log("New user set: " + currentUser);
     }
 
     #region ITEMS MANAGEMENT

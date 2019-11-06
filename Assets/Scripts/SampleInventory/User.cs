@@ -1,8 +1,11 @@
-﻿public class User
+﻿using UnityEngine;
+
+public class User
 {
     public string username = ""; // Considered as "primary key"
     public string items = "";
 
+    // For debugging
     public User(string username)
     {
         this.username = username;
@@ -12,6 +15,11 @@
     {
         this.username = username;
         CreateItems(itemsAmount);
+    }
+
+    public User(string username, string items) : this(username)
+    {
+        this.items = items;
     }
 
     private void CreateItems(int amount)
@@ -28,7 +36,7 @@
 
     public override string ToString()
     {
-        return string.Format("Username: {0}", username);
+        return string.Format("Username: {0} Items string: {1}", username, items);
     }
 
     public void UnlockItem(int id)
@@ -60,5 +68,10 @@
     public bool IsItemUnlocked(int id)
     {
         return items[id - 1] == '1'; // If equals 1, the item is unlocked
+    }
+
+    public static User CreateFromJSON(string jsonString)
+    {
+        return JsonUtility.FromJson<User>(jsonString);
     }
 }

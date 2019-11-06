@@ -14,7 +14,7 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private Sprite successImg, failImg;
 
     [SerializeField] private Image anonymousStateImg, emailStateImg;
-    [SerializeField] private Text anonymousDebugText, emailDebugText;
+    //[SerializeField] private Text anonymousDebugText, emailDebugText;
 
     // References
     [Header("Inputfield references")]
@@ -48,29 +48,13 @@ public class AuthManager : MonoBehaviour
         // First of all, Firebase dependences must be checked.
         bool dependencesChecked = await CheckFirebaseDependences();
         if (dependencesChecked) DatabaseManager.Instance.SetDatabase();
-    }
-
-    void Update()
-    {
-        //auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
-        //Firebase.Auth.FirebaseUser user = auth.CurrentUser;
-        //if (user != null)
-        //{
-        //    anonymousStateImg.sprite = successImg;
-        //    emailStateImg.sprite = successImg;
-        //    emailDebugTest.text = user.DisplayName;
-        //}
-        //else
-        //{
-        //    anonymousStateImg.sprite = failImg;
-        //    emailStateImg.sprite = failImg;
-        //}
+        auth = FirebaseAuth.DefaultInstance;
     }
 
     #endregion
 
 
-    #region SIGN IN
+    #region ANONYMOUS
 
     public void OnAnonymousSignInPressed()
     {
@@ -78,7 +62,7 @@ public class AuthManager : MonoBehaviour
     }
     private void AnonymousSignIn()
     {
-        auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
+        auth = FirebaseAuth.DefaultInstance;
 
         auth.SignInAnonymouslyAsync().ContinueWith(task =>
         {
@@ -98,12 +82,12 @@ public class AuthManager : MonoBehaviour
             FirebaseUser newUser = task.Result;
             Debug.LogFormat("User signed in successfully: {0} ({1})",
                 newUser.DisplayName, newUser.UserId);
-
-            anonymousDebugText.text = newUser.UserId;
-            anonymousStateImg.sprite = successImg;
-
         });
     }
+
+    #endregion
+
+    #region EMAIL
 
     public async void OnEmailSignInSignUpPressed()
     {
@@ -114,14 +98,14 @@ public class AuthManager : MonoBehaviour
 
         // Check if any field is empty
         if (username == "" || email == "" || password == "") return; // DEBUG
-               
-        // Try to get the user from DB
+
+        // Try to get the user from DB --- SEARCH ANOTHER CHECKING METHOD (BASED ON AUTH)
         User user = await DatabaseManager.Instance.GetUserFromDB(userInputfield.text);
 
         if (user != null) // If exists, Sign in with that user
         {
             Debug.Log("Sign in user");
-            EmailSignIn(user);
+            EmailSignIn(email, password);
             DatabaseManager.Instance.SetCurrentUser(user); // (Already found)
         }
         else // If not exists, register user (Sign up)
@@ -132,13 +116,12 @@ public class AuthManager : MonoBehaviour
         }
 
         DatabaseManager.Instance.InitItemsCanvas();
-
     }
 
-    private void EmailSignIn(User user)
+    private void EmailSignIn(string email, string password)
     {
-        Credential credential =
-    EmailAuthProvider.GetCredential(user.email, user.password);
+        Credential credential = EmailAuthProvider.GetCredential(email, password);
+
         auth.SignInWithCredentialAsync(credential).ContinueWith(task =>
         {
             if (task.IsCanceled)
@@ -152,6 +135,7 @@ public class AuthManager : MonoBehaviour
                 return;
             }
 
+            // Firebase user Sign in successful.
             FirebaseUser newUser = task.Result;
             Debug.LogFormat("User signed in successfully: {0} ({1})",
                 newUser.DisplayName, newUser.UserId);
@@ -181,18 +165,15 @@ public class AuthManager : MonoBehaviour
             FirebaseUser newUser = task.Result;
             Debug.LogFormat("Firebase user created successfully: {0} ({1})",
                 newUser.DisplayName, newUser.UserId);
-
-            emailStateImg.sprite = successImg;
-            emailDebugText.text = newUser.DisplayName;
         });
     }
-
 
     #endregion
 
     public void OnSignOutPressed()
     {
         auth.SignOut();
+        Debug.Log("Signed Out");
     }
 
     private async Task<bool> CheckFirebaseDependences()
