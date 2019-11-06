@@ -9,91 +9,24 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using System;
 
-public class User
-{
-    public string username;
-    public string email;
-    public string password;
-    public string items = "";
-
-    public User()
-    {
-    }
-
-    public User(string username, string email, string password, int itemsAmount)
-    {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-
-        CreateItems(itemsAmount);
-    }
-
-    private void CreateItems(int amount)
-    {
-        string temp = "";
-
-        for (int i = 0; i < amount; i++)
-        {
-            temp += "0";
-        }
-
-        items = temp;
-    }
-
-    public override string ToString()
-    {
-        return string.Format("Username: {0} - Email: {1}", username, email);
-    }
-
-    public void UnlockItem(int id)
-    {
-        string newItems = "";
-
-        for (int i = 0; i < items.Length; i++)
-        {
-            if (i == id - 1) newItems += "1"; // unlocked
-            else newItems += items[i]; // not changes
-        }
-
-        items = newItems; // update data
-    }
-
-    public void LockItem(int id)
-    {
-        string newItems = "";
-
-        for (int i = 0; i < items.Length; i++)
-        {
-            if (i == id - 1) newItems += "0"; // unlocked
-            else newItems += items[i]; // not changes
-        }
-
-        items = newItems; // update data
-    }
-
-    public bool IsItemUnlocked(int id)
-    {
-        return items[id - 1] == '1'; // If equals 1, the item is unlocked
-    }
-}
 
 public class DatabaseManager : MonoBehaviour
 {
-    public GameObject itemsCanvas;
+    [SerializeField] private readonly int itemsAmount = 9;
+    [SerializeField] private GameObject itemsCanvas;
     [SerializeField] private Transform buttonsGridParent;
+    [SerializeField] private ItemButton unlockableButtonPrefab;
 
-    [Space]
-    [SerializeField] private UnlockableButton unlockableButtonPrefab;
-    private UnlockableButton[] allButtons;
-    public int itemsAmount = 9;
-
+    private ItemButton[] allButtons;
     private User currentUser; // DATABASE
-    public User CurrentUser { get => currentUser; set => currentUser = value; }
+
+    // Properties
+    public int ItemsAmount => itemsAmount;
 
     // Singleton instance
     private static DatabaseManager _instance;
     public static DatabaseManager Instance { get { return _instance; } }
+
 
     private void Awake()
     {
@@ -112,7 +45,13 @@ public class DatabaseManager : MonoBehaviour
         FirebaseApp.DefaultInstance.SetEditorDatabaseUrl("https://signuptest-kikoalfaro.firebaseio.com/");
     }
 
-    public void StoreUserOnDB(User user)
+    #region DATABASE GETTERS AND SETTERS
+
+    /// <summary>
+    /// Stores a new entry of an user on the database
+    /// </summary>
+    /// <param name="username"></param>
+    public void StoreUserOnDB(string username)
     {
         string json = JsonUtility.ToJson(user);
         DatabaseReference dbRootRef = FirebaseDatabase.DefaultInstance.RootReference;
@@ -128,6 +67,82 @@ public class DatabaseManager : MonoBehaviour
         // If user exists but it wants to update its data (e.g. "username"), it's possible to access by:
         // mDatabaseRef.Child("users").Child(userId).Child("username").SetValueAsync(name);
     }
+
+    /// <summary>
+    /// Gets an entry of an user from the database based on its username
+    /// </summary>
+    /// <param name="username"></param>
+    /// <returns></returns>
+    public async Task<User> GetUserFromDB(string username)
+    {
+        DataSnapshot snapshot;
+
+        await FirebaseDatabase.DefaultInstance
+.GetReference("Users").Child(username)
+.GetValueAsync().ContinueWith(task =>
+{
+    if (task.IsFaulted)
+    {
+        // Handle the error...
+        Debug.LogError("ERROR GETTING THE USER");
+    }
+    else if (task.IsCompleted)
+    {
+        snapshot = task.Result;
+        Debug.Log("Snapshot: " + snapshot.Value);
+    }
+});
+
+        //User user = snapshot.GetType(User);
+        return new User();
+    }
+
+    #endregion
+
+    public void SetCurrentUser(User user)
+    {
+        currentUser = user;
+    }
+
+    #region ITEMS MANAGEMENT
+
+    public void InitItemsCanvas()
+    {
+        itemsCanvas.SetActive(true);
+        InstantiateItemButtons();
+    }
+
+    public void InstantiateItemButtons()
+    {
+        allButtons = new ItemButton[ItemsAmount];
+
+        for (int i = 0; i < allButtons.Length; i++)
+        {
+            ItemButton newButton = Instantiate(unlockableButtonPrefab, buttonsGridParent);
+            newButton.Init(i + 1);
+            newButton.GetComponentInChildren<Text>().text = newButton.itemID.ToString();
+            allButtons[i] = newButton;
+        }
+    }
+
+    public bool SwitchItemState(int id)
+    {
+        bool unlocked = false;
+        if (currentUser.IsItemUnlocked(id))
+        {
+            currentUser.LockItem(id);
+            unlocked = false;
+        }
+        else
+        {
+            currentUser.UnlockItem(id);
+            unlocked = true;
+        }
+
+        return unlocked;
+    }
+
+    #endregion
 
     public async Task<bool> UserExists(string username)
     {
@@ -150,70 +165,5 @@ public class DatabaseManager : MonoBehaviour
   });
 
         return exists;
-    }
-
-
-    public async User GetUserFromDB(string username)
-    {
-        bool exists = false;
-        await FirebaseDatabase.DefaultInstance
-  .GetReference("Users").Child(username)
-  .GetValueAsync().ContinueWith(task =>
-  {
-      if (task.IsFaulted)
-      {
-          // Handle the error...
-          Debug.LogError("ERROR GETTING THE USER");
-      }
-      else if (task.IsCompleted)
-      {
-          DataSnapshot snapshot = task.Result;
-          exists = snapshot.Exists;
-          Debug.Log("Snapshot: " + exists);
-      }
-  });
-
-        return exists;
-    }
-
-
-
-    public void InitItemsCanvas()
-    {
-        itemsCanvas.SetActive(true);
-        InstantiateUnlockableButtons();
-    }
-
-    public void InstantiateUnlockableButtons()
-    {
-        allButtons = new UnlockableButton[itemsAmount];
-
-        for (int i = 0; i < allButtons.Length; i++)
-        {
-            UnlockableButton newButton = Instantiate(unlockableButtonPrefab, buttonsGridParent);
-            newButton.Init(i + 1);
-            newButton.GetComponentInChildren<Text>().text = newButton.unlockableID.ToString();
-            allButtons[i] = newButton;
-        }
-    }
-
-    public bool SwitchItemState(int id)
-    {
-        bool unlocked = false;
-        User currentUser = AuthManager.Instance.CurrentUser;
-
-        Debug.Log(currentUser);
-        if (currentUser.IsItemUnlocked(id))
-        {
-            currentUser.LockItem(id);
-            unlocked = false;
-        }
-        else
-        {
-            currentUser.UnlockItem(id);
-            unlocked = true;
-        }
-
-        return unlocked;
     }
 }

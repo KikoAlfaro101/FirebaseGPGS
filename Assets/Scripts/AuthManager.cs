@@ -10,24 +10,24 @@ using UnityEngine.UI;
 
 public class AuthManager : MonoBehaviour
 {
-    // Singleton instance
-    private static AuthManager _instance;
-    public static AuthManager Instance { get { return _instance; } }
-
-
-    [SerializeField] private Image anonymousStateImg;
-    [SerializeField] private Image emailStateImg;
-
+    [Header("Graphics references")]
     [SerializeField] private Sprite successImg, failImg;
-    [SerializeField] private Text anonymousDebugTest, emailDebugTest;
+
+    [SerializeField] private Image anonymousStateImg, emailStateImg;
+    [SerializeField] private Text anonymousDebugText, emailDebugText;
 
     // References
+    [Header("Inputfield references")]
     [SerializeField] private InputField userInputfield;
     [SerializeField] private InputField emailInputfield;
     [SerializeField] private InputField passwordInputfield;
 
     // Auth instance
     FirebaseAuth auth;
+
+    // Singleton instance
+    private static AuthManager _instance;
+    public static AuthManager Instance { get { return _instance; } }
 
     #region UNITY METHODS
 
@@ -45,9 +45,9 @@ public class AuthManager : MonoBehaviour
 
     private async void Start()
     {
+        // First of all, Firebase dependences must be checked.
         bool dependencesChecked = await CheckFirebaseDependences();
         if (dependencesChecked) DatabaseManager.Instance.SetDatabase();
-        // DON'T DO ANYTHING BEFORE DATABASE IS LOADED
     }
 
     void Update()
@@ -99,7 +99,7 @@ public class AuthManager : MonoBehaviour
             Debug.LogFormat("User signed in successfully: {0} ({1})",
                 newUser.DisplayName, newUser.UserId);
 
-            anonymousDebugTest.text = newUser.UserId;
+            anonymousDebugText.text = newUser.UserId;
             anonymousStateImg.sprite = successImg;
 
         });
@@ -107,59 +107,32 @@ public class AuthManager : MonoBehaviour
 
     public async void OnEmailSignInSignUpPressed()
     {
-        if (userInputfield.text == "" || emailInputfield.text == "" || passwordInputfield.text == "") return; // DEBUG
+        // Get data from GUI
+        string username = userInputfield.text;
+        string email = emailInputfield.text;
+        string password = passwordInputfield.text;
 
-        //User userInput = new User(userInputfield.text,
-        //                        emailInputfield.text,
-        //                        passwordInputfield.text,
-        //                        DatabaseManager.Instance.itemsAmount);
+        // Check if any field is empty
+        if (username == "" || email == "" || password == "") return; // DEBUG
+               
+        // Try to get the user from DB
+        User user = await DatabaseManager.Instance.GetUserFromDB(userInputfield.text);
 
-        // Tries to get the user from DB
-        User user = await DatabaseManager.Instance.GetUserFromDB(userInput.username);
-        if (userExists)
+        if (user != null) // If exists, Sign in with that user
         {
             Debug.Log("Sign in user");
-            EmailSignIn(userInput);
-            DatabaseManager.Instance.InitItemsCanvas();
+            EmailSignIn(user);
+            DatabaseManager.Instance.SetCurrentUser(user); // (Already found)
         }
-        else // If not exists, register user
+        else // If not exists, register user (Sign up)
         {
             Debug.Log("Register user");
-            EmailSignUp(userInput);
-            DatabaseManager.Instance.InitItemsCanvas();
+            EmailSignUp(email, password); // Create a new User with the input data
+            DatabaseManager.Instance.StoreUserOnDB(username);
         }
-    }
 
-    private void EmailSignUp(User user)
-    {
-        auth = FirebaseAuth.DefaultInstance;
+        DatabaseManager.Instance.InitItemsCanvas();
 
-        auth.CreateUserWithEmailAndPasswordAsync(user.email, user.password).ContinueWith(task =>
-        {
-            if (task.IsCanceled)
-            {
-                Debug.LogError("CreateUserWithEmailAndPasswordAsync was canceled.");
-                emailStateImg.sprite = failImg;
-                return;
-            }
-            if (task.IsFaulted)
-            {
-                Debug.LogError("CreateUserWithEmailAndPasswordAsync encountered an error: " + task.Exception);
-                emailStateImg.sprite = failImg;
-                return;
-            }
-
-            DatabaseManager.Instance.StoreUser(user);
-
-
-            // Firebase user has been created.
-            FirebaseUser newUser = task.Result;
-            Debug.LogFormat("Firebase user created successfully: {0} ({1})",
-                newUser.DisplayName, newUser.UserId);
-
-            emailStateImg.sprite = successImg;
-            emailDebugTest.text = newUser.DisplayName;
-        });
     }
 
     private void EmailSignIn(User user)
@@ -185,6 +158,36 @@ public class AuthManager : MonoBehaviour
         });
     }
 
+    private void EmailSignUp(string email, string password)
+    {
+        auth = FirebaseAuth.DefaultInstance;
+
+        auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
+        {
+            if (task.IsCanceled)
+            {
+                Debug.LogError("CreateUserWithEmailAndPasswordAsync was canceled.");
+                emailStateImg.sprite = failImg;
+                return;
+            }
+            if (task.IsFaulted)
+            {
+                Debug.LogError("CreateUserWithEmailAndPasswordAsync encountered an error: " + task.Exception);
+                emailStateImg.sprite = failImg;
+                return;
+            }
+
+            // Firebase user has been created.
+            FirebaseUser newUser = task.Result;
+            Debug.LogFormat("Firebase user created successfully: {0} ({1})",
+                newUser.DisplayName, newUser.UserId);
+
+            emailStateImg.sprite = successImg;
+            emailDebugText.text = newUser.DisplayName;
+        });
+    }
+
+
     #endregion
 
     public void OnSignOutPressed()
@@ -194,14 +197,14 @@ public class AuthManager : MonoBehaviour
 
     private async Task<bool> CheckFirebaseDependences()
     {
-        bool check = false;
+        bool checkingDone = false;
         await FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
         {
             var dependencyStatus = task.Result;
             if (dependencyStatus == Firebase.DependencyStatus.Available)
             {
                 Debug.Log("Dependency OK");
-                check = true;
+                checkingDone = true;
             }
             else
             {
@@ -210,7 +213,7 @@ public class AuthManager : MonoBehaviour
             }
         });
 
-        return check;
+        return checkingDone;
     }
 
 }

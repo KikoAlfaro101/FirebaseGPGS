@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UnlockableButton : MonoBehaviour
+public class ItemButton : MonoBehaviour
 {
-    public int unlockableID;
+    public int itemID;
 
     public Color lockedColor;
     public Color unlockedColor;
@@ -14,14 +14,14 @@ public class UnlockableButton : MonoBehaviour
 
     public void Init(int id)
     {
-        unlockableID = id;
+        itemID = id;
         img = GetComponent<Image>();
         img.color = lockedColor;
     }
 
     public void OnButtonClicked()
     {
-        bool isUnlocked = DatabaseManager.Instance.SwitchItemState(unlockableID);
+        bool isUnlocked = DatabaseManager.Instance.SwitchItemState(itemID);
         img.color = isUnlocked ? unlockedColor : lockedColor;
     }
 }
