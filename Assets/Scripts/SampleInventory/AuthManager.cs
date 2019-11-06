@@ -12,8 +12,7 @@ public class AuthManager : MonoBehaviour
 {
     [Header("Graphics references")]
     [SerializeField] private Sprite successImg, failImg;
-
-    [SerializeField] private Image anonymousStateImg, emailStateImg;
+    [SerializeField] private Image authStateImg;
     //[SerializeField] private Text anonymousDebugText, emailDebugText;
 
     // References
@@ -50,75 +49,13 @@ public class AuthManager : MonoBehaviour
         if (dependencesChecked) DatabaseManager.Instance.SetDatabase();
         auth = FirebaseAuth.DefaultInstance;
 
-        auth.SignOut();
+        SignOut();
     }
 
     #endregion
+    
 
-
-    #region ANONYMOUS
-
-    public void OnAnonymousSignInPressed()
-    {
-        AnonymousSignIn();
-    }
-    private void AnonymousSignIn()
-    {
-        auth = FirebaseAuth.DefaultInstance;
-
-        auth.SignInAnonymouslyAsync().ContinueWith(task =>
-        {
-            if (task.IsCanceled)
-            {
-                Debug.LogError("SignInAnonymouslyAsync was canceled.");
-                anonymousStateImg.sprite = failImg;
-                return;
-            }
-            if (task.IsFaulted)
-            {
-                Debug.LogError("SignInAnonymouslyAsync encountered an error: " + task.Exception);
-                anonymousStateImg.sprite = failImg;
-                return;
-            }
-
-            FirebaseUser newUser = task.Result;
-            Debug.LogFormat("User signed in successfully: {0} ({1})",
-                newUser.DisplayName, newUser.UserId);
-        });
-    }
-
-    #endregion
-
-    #region EMAIL
-
-    public async void OnEmailSignInSignUpPressed()
-    {
-        // Get data from GUI
-        string username = userInputfield.text;
-        string email = emailInputfield.text;
-        string password = passwordInputfield.text;
-
-        // Check if any field is empty
-        if (username == "" || email == "" || password == "") return; // DEBUG
-
-        // Try to get the user from DB --- SEARCH ANOTHER CHECKING METHOD (BASED ON AUTH)
-        User user = await DatabaseManager.Instance.GetUserFromDB(userInputfield.text);
-
-        if (user != null) // If exists, Sign in with that user
-        {
-            Debug.Log("Sign in user");
-            EmailSignIn(email, password);
-            DatabaseManager.Instance.SetCurrentUser(user); // (Already found)
-        }
-        else // If not exists, register user (Sign up)
-        {
-            Debug.Log("Register user");
-            EmailSignUp(email, password); // Create a new User with the input data
-            DatabaseManager.Instance.StoreUserOnDB(username);
-        }
-
-        DatabaseManager.Instance.InitItemsCanvas();
-    }
+    #region EMAIL AUTH
 
     private void EmailSignIn(string email, string password)
     {
@@ -170,9 +107,56 @@ public class AuthManager : MonoBehaviour
 
     #endregion
 
+    #region BUTTONS
+
+    public async void OnEmailSignInSignUpPressed()
+    {
+        // Get data from GUI
+        string username = userInputfield.text;
+        string email = emailInputfield.text;
+        string password = passwordInputfield.text;
+
+        // Check if any field is empty
+        if (username == "" || email == "" || password == "") return; // DEBUG
+
+        // Try to get the user from DB --- SEARCH ANOTHER CHECKING METHOD (BASED ON AUTH)
+        User user = await DatabaseManager.Instance.GetUserFromDB(userInputfield.text);
+
+        if (user != null) // If exists, Sign in with that user
+        {
+            Debug.Log("Sign in user");
+            EmailSignIn(email, password);
+            DatabaseManager.Instance.SetCurrentUser(user); // (Already found)
+        }
+        else // If not exists, register user (Sign up)
+        {
+            Debug.Log("Register user");
+            EmailSignUp(email, password); // Create a new User with the input data
+            DatabaseManager.Instance.StoreUserOnDB(username);
+        }
+
+        // Update UI
+        authStateImg.sprite = successImg;
+        ClearInputfields();
+    }
+
+    public void OnSeeItemsPressed()
+    {
+        DatabaseManager.Instance.InitItemsCanvas();
+    }
+
     public void OnSignOutPressed()
     {
+        SignOut();
+    }
+
+    #endregion
+
+    private void SignOut()
+    {
         auth.SignOut();
+        authStateImg.sprite = failImg;
+        ClearInputfields();
         Debug.Log("Signed Out");
     }
 
@@ -197,4 +181,40 @@ public class AuthManager : MonoBehaviour
         return checkingDone;
     }
 
+    private void ClearInputfields()
+    {
+        userInputfield.text = emailInputfield.text = passwordInputfield.text = "";
+    }
+       
+
+    #region ANONYMOUS AUTH (NOT TOO RELEVANT NOW...)
+
+    public void OnAnonymousSignInPressed()
+    {
+        AnonymousSignIn();
+    }
+    private void AnonymousSignIn()
+    {
+        auth = FirebaseAuth.DefaultInstance;
+
+        auth.SignInAnonymouslyAsync().ContinueWith(task =>
+        {
+            if (task.IsCanceled)
+            {
+                Debug.LogError("SignInAnonymouslyAsync was canceled.");
+                return;
+            }
+            if (task.IsFaulted)
+            {
+                Debug.LogError("SignInAnonymouslyAsync encountered an error: " + task.Exception);
+                return;
+            }
+
+            FirebaseUser newUser = task.Result;
+            Debug.LogFormat("User signed in successfully: {0} ({1})",
+                newUser.DisplayName, newUser.UserId);
+        });
+    }
+
+    #endregion
 }

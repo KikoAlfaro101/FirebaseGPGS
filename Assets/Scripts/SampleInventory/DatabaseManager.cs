@@ -115,11 +115,6 @@ public class DatabaseManager : MonoBehaviour
 
     #endregion
 
-    public void SetCurrentUser(User user)
-    {
-        currentUser = user;
-        Debug.Log("New user set: " + currentUser);
-    }
 
     #region ITEMS MANAGEMENT
 
@@ -169,6 +164,11 @@ public class DatabaseManager : MonoBehaviour
 
     #endregion
 
+    public void SetCurrentUser(User user)
+    {
+        currentUser = user;
+        Debug.Log("New user set: " + currentUser);
+    }
     public async Task<bool> UserExists(string username)
     {
         bool exists = false;

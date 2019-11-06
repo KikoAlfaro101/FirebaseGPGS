@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4872312796558517763}
   - component: {fileID: 7400772844816836251}
   m_Layer: 5
-  m_Name: Unlockable Button
+  m_Name: Item Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -61,7 +61,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.9056604, g: 0.53982383, b: 0.44001427, a: 1}
+  m_Color: {r: 1, g: 0.42352945, b: 0.34117648, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -142,9 +142,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b303a7ce74184ab4396f89c99e32e406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unlockableID: 0
-  lockedColor: {r: 0.9058824, g: 0.5411765, b: 0.43921572, a: 1}
-  unlockedColor: {r: 0.38230667, g: 0.91764706, b: 0.16862741, a: 1}
+  itemID: 0
+  lockedColor: {r: 1, g: 0.42352945, b: 0.34117648, a: 1}
+  unlockedColor: {r: 0.10196079, g: 0.45098042, b: 0.909804, a: 1}
 --- !u!1 &4872312797252125175
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,7 +203,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
