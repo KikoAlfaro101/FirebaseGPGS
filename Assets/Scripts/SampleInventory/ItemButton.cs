@@ -21,7 +21,11 @@ public class ItemButton : MonoBehaviour
 
     public void OnButtonClicked()
     {
-        bool isUnlocked = DatabaseManager.Instance.SwitchItemState(itemID);
-        img.color = isUnlocked ? unlockedColor : lockedColor; // GUI Update
+        DatabaseManager.Instance.SwitchItemState(itemID);
+    }
+
+    public void UpdateColor(bool unlocked)
+    {
+        img.color = unlocked ? unlockedColor : lockedColor; // GUI Update
     }
 }

@@ -6,19 +6,13 @@ public class User
     public string username = ""; // Considered as "primary key"
     public string items = "";
 
-    // For debugging
-    public User(string username)
-    {
-        this.username = username;
-    }
-
     public User(string username, int itemsAmount)
     {
         this.username = username;
         CreateItems(itemsAmount);
     }
 
-    public User(string username, string items) : this(username)
+    public User(string username, string items)
     {
         this.items = items;
     }

@@ -49,6 +49,8 @@ public class AuthManager : MonoBehaviour
         bool dependencesChecked = await CheckFirebaseDependences();
         if (dependencesChecked) DatabaseManager.Instance.SetDatabase();
         auth = FirebaseAuth.DefaultInstance;
+
+        auth.SignOut();
     }
 
     #endregion
@@ -151,13 +153,11 @@ public class AuthManager : MonoBehaviour
             if (task.IsCanceled)
             {
                 Debug.LogError("CreateUserWithEmailAndPasswordAsync was canceled.");
-                emailStateImg.sprite = failImg;
                 return;
             }
             if (task.IsFaulted)
             {
                 Debug.LogError("CreateUserWithEmailAndPasswordAsync encountered an error: " + task.Exception);
-                emailStateImg.sprite = failImg;
                 return;
             }
 

@@ -127,6 +127,7 @@ public class DatabaseManager : MonoBehaviour
     {
         itemsCanvas.SetActive(true);
         InstantiateItemButtons();
+        UpdateButtonsUI(); // Update all buttons UI depending on the current user
     }
 
     public void InstantiateItemButtons()
@@ -142,22 +143,28 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    public bool SwitchItemState(int id)
+    // Changes an item state on the current user
+    public void SwitchItemState(int id)
     {
-        bool unlocked = false;
         if (currentUser.IsItemUnlocked(id))
         {
             currentUser.LockItem(id);
-            unlocked = false;
         }
         else
         {
             currentUser.UnlockItem(id);
-            unlocked = true;
         }
 
         UpdateUserOnDB(currentUser);
-        return unlocked;
+        UpdateButtonsUI();
+    }
+
+    private void UpdateButtonsUI()
+    {
+        for (int i = 0; i < allButtons.Length; i++)
+        {
+            allButtons[i].UpdateColor(currentUser.IsItemUnlocked(i + 1));
+        }
     }
 
     #endregion
