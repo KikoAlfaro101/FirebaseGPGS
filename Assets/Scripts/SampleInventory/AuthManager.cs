@@ -2,17 +2,23 @@
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Unity.Editor;
+using GooglePlayGames;
+using GooglePlayGames.BasicApi;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class AuthManager : MonoBehaviour
 {
-    [Header("Graphics references")]
-    [SerializeField] private Sprite successImg, failImg;
-    [SerializeField] private Image authStateImg;
+    private enum AuthType { ANONYMOUS, EMAIL, GPGS,         SIGNED_OUT};
+
+    [SerializeField] private GameObject beforeSignIn;
+    [SerializeField] private GameObject afterSignIn;
+
     //[SerializeField] private Text anonymousDebugText, emailDebugText;
 
     // References
@@ -23,6 +29,7 @@ public class AuthManager : MonoBehaviour
 
     // Auth instance
     FirebaseAuth auth;
+    AuthType authType = AuthType.SIGNED_OUT;
 
     // Singleton instance
     private static AuthManager _instance;
@@ -49,11 +56,13 @@ public class AuthManager : MonoBehaviour
         if (dependencesChecked) DatabaseManager.Instance.SetDatabase();
         auth = FirebaseAuth.DefaultInstance;
 
+        InitGPGS();
+
         SignOut();
     }
 
     #endregion
-    
+
 
     #region EMAIL AUTH
 
@@ -107,6 +116,67 @@ public class AuthManager : MonoBehaviour
 
     #endregion
 
+    #region GPGS AUTH
+
+    private void InitGPGS()
+    {
+        Debug.Log("INIT GPGS...");
+
+        PlayGamesClientConfiguration config = new PlayGamesClientConfiguration.Builder()
+    .RequestServerAuthCode(false /* Don't force refresh */)
+    .Build();
+
+        PlayGamesPlatform.DebugLogEnabled = true; // Enable debugging output
+
+        PlayGamesPlatform.InitializeInstance(config);
+        PlayGamesPlatform.Activate();
+    }
+
+    private void PlayGamesSignIn()
+    {
+        if (!Social.localUser.authenticated)
+        {
+            Social.localUser.Authenticate(success => {
+                if (success)
+                {
+                    Debug.Log("success");
+                    string authCode = PlayGamesPlatform.Instance.GetServerAuthCode();
+                    FirebasePlayGamesSignIn(authCode);
+                }
+                else
+                {
+                    Debug.Log("fail...");
+                }
+            });
+        }
+    }
+
+    private void FirebasePlayGamesSignIn(string authCode)
+    {
+        Credential credential = PlayGamesAuthProvider.GetCredential(authCode);
+
+        auth.SignInWithCredentialAsync(credential).ContinueWith(task =>
+        {
+            if (task.IsCanceled)
+            {
+                Debug.LogError("SignInWithCredentialAsync was canceled.");
+                return;
+            }
+            if (task.IsFaulted)
+            {
+                Debug.LogError("SignInWithCredentialAsync encountered an error: " + task.Exception);
+                return;
+            }
+
+            // Firebase user Sign in successful.
+            FirebaseUser newUser = task.Result;
+            Debug.LogFormat("User signed in successfully: {0} ({1})",
+                newUser.DisplayName, newUser.UserId);
+        });
+    }
+
+    #endregion
+
     #region BUTTONS
 
     public async void OnEmailSignInSignUpPressed()
@@ -135,11 +205,19 @@ public class AuthManager : MonoBehaviour
             DatabaseManager.Instance.StoreUserOnDB(username);
         }
 
+        authType = AuthType.EMAIL;
+
         // Update UI
-        authStateImg.sprite = successImg;
+        beforeSignIn.SetActive(false);
+        afterSignIn.SetActive(true);
         ClearInputfields();
     }
 
+    public void OnGpgsSignInPressed()
+    {
+        PlayGamesSignIn(); // 1st, sign in with GPGS
+    }
+    
     public void OnSeeItemsPressed()
     {
         DatabaseManager.Instance.InitItemsCanvas();
@@ -160,8 +238,16 @@ public class AuthManager : MonoBehaviour
 
     private void SignOut()
     {
+        if( authType == AuthType.GPGS )
+        {
+            PlayGamesPlatform.Instance.SignOut(); // 1st, sign out of GPGS
+        }
         auth.SignOut();
-        authStateImg.sprite = failImg;
+        beforeSignIn.SetActive(true);
+        afterSignIn.SetActive(false);
+        authType = AuthType.SIGNED_OUT;
+
+        // Clear UI
         ClearInputfields();
         Debug.Log("Signed Out");
     }
@@ -191,7 +277,7 @@ public class AuthManager : MonoBehaviour
     {
         userInputfield.text = emailInputfield.text = passwordInputfield.text = "";
     }
-       
+
 
     #region ANONYMOUS AUTH (NOT TOO RELEVANT NOW...)
 
@@ -223,4 +309,5 @@ public class AuthManager : MonoBehaviour
     }
 
     #endregion
+
 }
