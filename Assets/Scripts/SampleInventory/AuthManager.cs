@@ -150,6 +150,12 @@ public class AuthManager : MonoBehaviour
         SignOut();
     }
 
+    public void OnSignOutItemsPressed()
+    {
+        DatabaseManager.Instance.BackToSignInCanvas();
+        SignOut();
+    }
+
     #endregion
 
     private void SignOut()

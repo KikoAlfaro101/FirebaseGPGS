@@ -13,6 +13,7 @@ using System;
 public class DatabaseManager : MonoBehaviour
 {
     [SerializeField] private readonly int itemsAmount = 9;
+    [SerializeField] private GameObject signInCanvas;
     [SerializeField] private GameObject itemsCanvas;
     [SerializeField] private Transform buttonsGridParent;
     [SerializeField] private ItemButton unlockableButtonPrefab;
@@ -123,6 +124,20 @@ public class DatabaseManager : MonoBehaviour
         itemsCanvas.SetActive(true);
         InstantiateItemButtons();
         UpdateButtonsUI(); // Update all buttons UI depending on the current user
+    }
+
+    public void BackToSignInCanvas()
+    {
+        itemsCanvas.SetActive(false);
+        DestroyItemButtons();
+    }
+
+    private void DestroyItemButtons()
+    {
+        for (int i = allButtons.Length - 1; i >= 0; i--)
+        {
+            Destroy(allButtons[i].gameObject);
+        }
     }
 
     public void InstantiateItemButtons()
