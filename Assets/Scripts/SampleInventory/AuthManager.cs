@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 public class AuthManager : MonoBehaviour
 {
-    private enum AuthType { ANONYMOUS, EMAIL, GPGS,         SIGNED_OUT};
+    private enum AuthType { ANONYMOUS, EMAIL, GPGS, SIGNED_OUT };
 
     [SerializeField] private GameObject beforeSignIn;
     [SerializeField] private GameObject afterSignIn;
@@ -136,16 +136,19 @@ public class AuthManager : MonoBehaviour
     {
         if (!Social.localUser.authenticated)
         {
-            Social.localUser.Authenticate(success => {
+            Social.localUser.Authenticate(success =>
+            {
                 if (success)
                 {
                     Debug.Log("success");
+
+                    // If success, get the authCode and Sign in with Firebase
                     string authCode = PlayGamesPlatform.Instance.GetServerAuthCode();
                     FirebasePlayGamesSignIn(authCode);
                 }
                 else
                 {
-                    Debug.Log("fail...");
+                    Debug.LogError("Failed on GPGS Sign in.");
                 }
             });
         }
@@ -179,15 +182,16 @@ public class AuthManager : MonoBehaviour
 
     #region BUTTONS
 
+
     public async void OnEmailSignInSignUpPressed()
     {
         // Get data from GUI
-        string username = userInputfield.text;
+        string username = userInputfield.text + "_EMAIL"; // ---- DEBUG (Do all methods via email)
         string email = emailInputfield.text;
         string password = passwordInputfield.text;
 
         // Check if any field is empty
-        if (username == "" || email == "" || password == "") return; // DEBUG
+        if (username == "" || email == "" || password == "") return; // DEBUG (Lack of visual feedback)
 
         // Try to get the user from DB --- SEARCH ANOTHER CHECKING METHOD (BASED ON AUTH)
         User user = await DatabaseManager.Instance.GetUserFromDB(userInputfield.text);
@@ -213,11 +217,41 @@ public class AuthManager : MonoBehaviour
         ClearInputfields();
     }
 
-    public void OnGpgsSignInPressed()
+    public async void OnGpgsSignInPressed()
     {
-        PlayGamesSignIn(); // 1st, sign in with GPGS
+        // 1st | Sign in with GPGS
+        PlayGamesSignIn();
+
+        // 2nd | If success, check the Database (if it is the 1st access, creates the instance)
+
+
+        string username = PlayGamesPlatform.Instance.GetIdToken() + "_GPGS"; // ------- THIS TAG DOESN'T WORK!!
+        
+        // --------------------- IMPORTANT: Modify in order to tag all users by email + "_TYPE"
+
+
+        // Try to get the user from DB --- SEARCH ANOTHER CHECKING METHOD (BASED ON AUTH)
+        User user = await DatabaseManager.Instance.GetUserFromDB(username);
+
+        if (user != null) // If exists, set that user
+        {
+            Debug.Log("Sign in user");
+            DatabaseManager.Instance.SetCurrentUser(user); // (Already found)
+        }
+        else // If not exists, add user to the DB
+        {
+            Debug.Log("Register user");
+            DatabaseManager.Instance.StoreUserOnDB(username);
+        }
+
+        authType = AuthType.GPGS;
+
+        // Update UI
+        beforeSignIn.SetActive(false);
+        afterSignIn.SetActive(true);
+        ClearInputfields();
     }
-    
+
     public void OnSeeItemsPressed()
     {
         DatabaseManager.Instance.InitItemsCanvas();
@@ -238,7 +272,7 @@ public class AuthManager : MonoBehaviour
 
     private void SignOut()
     {
-        if( authType == AuthType.GPGS )
+        if (authType == AuthType.GPGS)
         {
             PlayGamesPlatform.Instance.SignOut(); // 1st, sign out of GPGS
         }
