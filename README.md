@@ -41,13 +41,11 @@ Once the project is created, it must be configurated on the Settings tab and **t
 Games Services:
 - It must be linked 2 applications: The Android one (com.yourcompany.unity-project-name) and the Firebase one (https://firebaseproject-yourcompany.firebaseapp.com/).
 
-- To local tests, the public certificate must be used. On the Google Play Console, go to *All applications > YOUR_APP > Release management > Apps signing* and check that the SHA-1 of the Upload key certificate (the last one) is the same of the SHA-1 found on the Google API Console: *Credentials > Client IDs of OAuth 2.0 > Android client for...*
+- To local tests, the public certificate must be used. On the [Google Play Console](https://play.google.com/apps/publish), go to *All applications > YOUR_APP > Release management > Apps signing* and copy the SHA-1 certificate fingerprint Upload certificate (the last one) to the [Google Developer Console](https://console.cloud.google.com/apis): *Credentials > Client IDs of OAuth 2.0 > Android client for...*
 
-Important links for more information:
-- [Google Play Console](https://play.google.com/apps/publish)
-- [Google API Console](https://console.cloud.google.com/apis)
-- [App signing](https://developer.android.com/studio/publish/app-signing)
+    Thanks to the Stackoverflow user [Naren Neelamegam](https://stackoverflow.com/users/3241481/naren-neelamegam) for providing the method. [Check it out to detailed information.](https://stackoverflow.com/questions/47284852/google-play-sign-in-for-unity)
 
+[More information about Google App signing.](https://developer.android.com/studio/publish/app-signing)
 
 ## 4. Putting all together
 
