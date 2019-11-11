@@ -43,6 +43,7 @@ Games Services:
 
 - To local tests, the public certificate must be used. On the [Google Play Console](https://play.google.com/apps/publish), go to *All applications > YOUR_APP > Release management > Apps signing* and copy the SHA-1 certificate fingerprint Upload certificate (the last one) to the [Google Developer Console](https://console.cloud.google.com/apis): *Credentials > Client IDs of OAuth 2.0 > Android client for...*
 
+    **TIP:** This way, it is possible test the GPGS locally, even by selecting a *Development Build* in order to see the adb log on the Editor's console. ([adb](https://developer.android.com/studio/command-line/adb.html) must be installed)
     Thanks to the Stackoverflow user [Naren Neelamegam](https://stackoverflow.com/users/3241481/naren-neelamegam) for providing the method. [Check it out to detailed information.](https://stackoverflow.com/questions/47284852/google-play-sign-in-for-unity)
 
 [More information about Google App signing.](https://developer.android.com/studio/publish/app-signing)
