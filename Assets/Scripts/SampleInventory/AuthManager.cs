@@ -175,6 +175,9 @@ public class AuthManager : MonoBehaviour
             FirebaseUser newUser = task.Result;
             Debug.LogFormat("User signed in successfully: {0} ({1})",
                 newUser.DisplayName, newUser.UserId);
+
+            PlayGamesDatabase(newUser.Email);
+
         });
     }
 
@@ -198,13 +201,13 @@ public class AuthManager : MonoBehaviour
 
         if (user != null) // If exists, Sign in with that user
         {
-            Debug.Log("Sign in user");
+            Debug.Log("Sign in user from email");
             EmailSignIn(email, password);
             DatabaseManager.Instance.SetCurrentUser(user); // (Already found)
         }
         else // If not exists, register user (Sign up)
         {
-            Debug.Log("Register user");
+            Debug.Log("Register user from email");
             EmailSignUp(email, password); // Create a new User with the input data
             DatabaseManager.Instance.StoreUserOnDB(username);
         }
@@ -212,21 +215,20 @@ public class AuthManager : MonoBehaviour
         authType = AuthType.EMAIL;
 
         // Update UI
-        beforeSignIn.SetActive(false);
-        afterSignIn.SetActive(true);
-        ClearInputfields();
+        ShowSuccessScreen();
     }
 
-    public async void OnGpgsSignInPressed()
+    public void OnGpgsSignInPressed()
     {
         // 1st | Sign in with GPGS
         PlayGamesSignIn();
+    }
 
+    private async void PlayGamesDatabase(string username)
+    {
         // 2nd | If success, check the Database (if it is the 1st access, creates the instance)
+        //string username = auth.CurrentUser.Email + "_GPGS"; // ------- THIS TAG DOESN'T WORK!!
 
-
-        string username = PlayGamesPlatform.Instance.GetIdToken() + "_GPGS"; // ------- THIS TAG DOESN'T WORK!!
-        
         // --------------------- IMPORTANT: Modify in order to tag all users by email + "_TYPE"
 
 
@@ -235,18 +237,23 @@ public class AuthManager : MonoBehaviour
 
         if (user != null) // If exists, set that user
         {
-            Debug.Log("Sign in user");
+            Debug.Log("Sign in user from GPGS");
             DatabaseManager.Instance.SetCurrentUser(user); // (Already found)
         }
         else // If not exists, add user to the DB
         {
-            Debug.Log("Register user");
+            Debug.Log("Register user from GPGS");
             DatabaseManager.Instance.StoreUserOnDB(username);
         }
 
         authType = AuthType.GPGS;
 
         // Update UI
+        ShowSuccessScreen();
+    }
+
+    private void ShowSuccessScreen()
+    {
         beforeSignIn.SetActive(false);
         afterSignIn.SetActive(true);
         ClearInputfields();
